@@ -11,7 +11,7 @@ from datetime import datetime
 
 SDCardPathMount = '/home/axa/Media/axa/KoboSD'
 KoboPathMount = '/home/axa/Media/axa/KOBOeReader'
-DBPath = '/home/axa/Media/axa/KOBOeReader/.kobo/KoboReader.sqlite'
+DBPath = KoboPathMount + '/.kobo/KoboReader.sqlite'
 BooksRoot = 'Books'
 BookShelfs = set()
 
@@ -103,7 +103,7 @@ def main(argv):
             addBook(location, book_path, f_name, c)
 
     conn.commit()
-    conn.execute("VACUUM")
+    #conn.execute("VACUUM")
     conn.close()
 
 
