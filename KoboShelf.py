@@ -4,18 +4,76 @@
 __author__ = 'axa'
 
 import os
+import os.path
 import sqlite3
 import sys
 import uuid
 from datetime import datetime
+from sys import platform
+import subprocess
+import argparse
 
-SDCardPathMount = '/home/axa/Media/axa/KoboSD'
-KoboPathMount = '/home/axa/Media/axa/KOBOeReader'
-DBPath = KoboPathMount + '/.kobo/KoboReader.sqlite'
-BooksRoot = 'Books'
+
+Debug = False
 BookShelfs = set()
 
 
+# -----------------------------------------------------
+#
+#
+def parseCL():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ereader', type=str, help='mount point of eReader', default='')
+    parser.add_argument('--sd', type=str, help='mount point of SD card', default='')
+    parser.add_argument('--rbook', type=str, choices=['on', 'off'], default='off',
+                        help='enabling/disabling adding book from eReader memorydisabled by default')
+    parser.add_argument('--sdbook', type=str, choices=['on', 'off'], default='on',
+                        help='enabling/disabling adding book from SD card memoryenabled by default')
+    parser.add_argument('-w', '--showsettings', action='count', help='display settings and exit')
+
+    return parser.parse_args()
+
+
+# -----------------------------------------------------
+# Determining mount point of KoboeReader and SD card
+#
+def detectUSBDrive(args):
+    if platform == 'linux' and not Debug:
+        try:
+            df = subprocess.check_output("df --type=vfat --output=target | grep /", shell=True).decode("utf-8")
+        except:
+            pass
+        else:
+            for dev in df.split('\n'):
+                if os.path.basename(dev) == 'KOBOeReader':
+                    args.ereader = dev
+                elif os.path.isdir(dev + '/koboExtStorage'):
+                    args.sd = dev
+    elif platform == 'win32':
+        # для windows точки монтирования нужно указывать вручную в командной строке
+        pass
+    elif Debug:
+        args.sd = '/home/axa/Media/axa/KoboSD'
+        args.ereader = '/home/axa/Media/axa/KOBOeReader'
+    else:
+        print('Upssss.... I dont know this host')
+        quit()
+
+    if args.ereader == '' or args.sd == '':
+        print('Check mount Reader and SD card or use command line switches')
+        quit()
+
+
+# -----------------------------------------------------
+#
+#
+def showSettings(args):
+    print(args)
+
+
+# -----------------------------------------------------
+#
+#
 def addBookShelf(book_shelf, cursorSQL):
     if book_shelf not in BookShelfs:
         BookShelfs.add(book_shelf)
@@ -31,31 +89,17 @@ def addBookShelf(book_shelf, cursorSQL):
         v__IsSynced = "True"
 
         cursorSQL.execute('''INSERT INTO Shelf
-                            (   CreationDate,
-                                id,
-                                InternalName,
-                                LastModified,
-                                Name,
-                                Type,
-                                _IsDeleted,
-                                _IsVisible,
-                                _IsSynced
-                            )
-                            VALUES(?,?,?,?,?,?,?,?,?)''',
-                            (   v_CreationDate,
-                                v_uuidShelf,
-                                v_InternalName,
-                                v_LastModified,
-                                v_Name,
-                                v_Type,
-                                v__IsDeleted,
-                                v__IsVisible,
-                                v__IsSynced
-                           )
-                         )
+          (CreationDate, id, InternalName, LastModified, Name,
+           Type, _IsDeleted, _IsVisible, _IsSynced)
+          VALUES(?,?,?,?,?,?,?,?,?)''',
+          ( v_CreationDate, v_uuidShelf, v_InternalName, v_LastModified,
+            v_Name, v_Type, v__IsDeleted, v__IsVisible, v__IsSynced)
+                          )
 
 
+# -----------------------------------------------------
 # noinspection SqlResolve
+#
 def addBook(location, book_path, f_name, cursorSQL):
     book_shelf = os.path.basename(book_path)
     addBookShelf(book_shelf, cursorSQL)
@@ -67,25 +111,28 @@ def addBook(location, book_path, f_name, cursorSQL):
     v__IsDeleted = "False"
     v__IsSynced = "False"
     cursorSQL.execute('''INSERT INTO ShelfContent
-                        (   ShelfName,
-                            ContentId,
-                            DateModified,
-                            _IsDeleted,
-                            _IsSynced
-                        )
-                        VALUES(?,?,?,?,?)''',
-                        (
-                            v_ShelfName,
-                            v_ContentId,
-                            v_DateModified,
-                            v__IsDeleted,
-                            v__IsSynced
-                        )
+      (ShelfName, ContentId, DateModified, _IsDeleted, _IsSynced)
+      VALUES(?,?,?,?,?)''',
+      ( v_ShelfName, v_ContentId, v_DateModified, v__IsDeleted, v__IsSynced )
                       )
 
 
+# -----------------------------------------------------
+#
+#
 def main(argv):
-    conn = sqlite3.connect(DBPath)
+    args = parseCL()
+    if args.ereader == '' or args.sd == '':
+        detectUSBDrive(args)
+
+    if args.showsettings:
+        showSettings(args)
+        quit()
+
+    db_path = args.ereader + '/.kobo/KoboReader.sqlite'
+    BooksRoot = 'Books'
+
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     # Очистить содержимое таблицы "Shelf"
     c.execute("DELETE FROM Shelf")
@@ -93,17 +140,17 @@ def main(argv):
     c.execute("DELETE FROM ShelfContent")
 
     # добавляем полки и книги из SD карты
-    SDCardPathBooks = SDCardPathMount + '/' + BooksRoot
+    SDCardPathBooks = sdCardPathMount + '/' + BooksRoot
     for dirName, subdirList, file_list in os.walk(SDCardPathBooks):
         file_list = [fi for fi in file_list if fi.lower().endswith('.epub')]
 
         location = 'file:///mnt/sd'
-        book_path = dirName.replace(SDCardPathMount, '')
+        book_path = dirName.replace(sdCardPathMount, '')
         for f_name in file_list:
             addBook(location, book_path, f_name, c)
 
     conn.commit()
-    #conn.execute("VACUUM")
+    # conn.execute("VACUUM")
     conn.close()
 
 
