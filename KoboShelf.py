@@ -29,7 +29,7 @@ def parseCL():
                         help='enabling/disabling adding book from eReader memorydisabled by default')
     parser.add_argument('--sdbook', type=str, choices=['on', 'off'], default='on',
                         help='enabling/disabling adding book from SD card memoryenabled by default')
-    parser.add_argument('-w', '--showsettings', action='count', help='display settings and exit')
+    parser.add_argument('-s', '--showsettings', action='count', help='display settings and exit')
 
     return parser.parse_args()
 
@@ -68,7 +68,10 @@ def detectUSBDrive(args):
 #
 #
 def showSettings(args):
-    print(args)
+    print('eReader mount point: ', args.ereader)
+    print('SD card mount point: ', args.sd)
+    print('Add books from eReader: ', args.rbook)
+    print('Add books from SD card: ', args.sdbook)
 
 
 # -----------------------------------------------------
@@ -140,12 +143,12 @@ def main(argv):
     c.execute("DELETE FROM ShelfContent")
 
     # добавляем полки и книги из SD карты
-    SDCardPathBooks = sdCardPathMount + '/' + BooksRoot
+    SDCardPathBooks = args.sd + '/' + BooksRoot
     for dirName, subdirList, file_list in os.walk(SDCardPathBooks):
         file_list = [fi for fi in file_list if fi.lower().endswith('.epub')]
 
         location = 'file:///mnt/sd'
-        book_path = dirName.replace(sdCardPathMount, '')
+        book_path = dirName.replace(args.sd, '')
         for f_name in file_list:
             addBook(location, book_path, f_name, c)
 
