@@ -2,6 +2,7 @@
 # coding=utf-8# -*- coding: utf-8 -*-
 
 __author__ = 'axa'
+__version__ = '160904'
 
 import os
 import os.path
@@ -23,13 +24,15 @@ BookShelfs = set()
 #
 def parseCL():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ereader', type=str, help='mount point of eReader', default='')
-    parser.add_argument('--sd', type=str, help='mount point of SD card', default='')
+    parser.add_argument('--ereader', type=str, help='Mount point of eReader', default='')
+    parser.add_argument('--sd', type=str, help='Mount point of SD card', default='')
     parser.add_argument('--rbook', type=str, choices=['on', 'off'], default='off',
-                        help='enabling/disabling adding book from eReader memorydisabled by default')
+                        help='Enabling/disabling adding book from eReader memory. Disabled by default')
     parser.add_argument('--sdbook', type=str, choices=['on', 'off'], default='on',
-                        help='enabling/disabling adding book from SD card memoryenabled by default')
-    parser.add_argument('-s', '--showsettings', action='count', help='display settings and exit')
+                        help='Enabling/disabling adding book from SD card memory. Enabled by default')
+    parser.add_argument('-s', '--showsettings', action='count',
+                        help='Display settings and exit. Reader must be connected.')
+    parser.add_argument('-v', '--version', action='version', version='Version: ' + __version__)
 
     return parser.parse_args()
 
@@ -127,9 +130,11 @@ def main(argv):
     args = parseCL()
     if args.ereader == '' or args.sd == '':
         detectUSBDrive(args)
-
     if args.showsettings:
         showSettings(args)
+        quit()
+    if args.version:
+        print('Version ', __version__)
         quit()
 
     db_path = args.ereader + '/.kobo/KoboReader.sqlite'
