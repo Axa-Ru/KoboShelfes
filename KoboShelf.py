@@ -2,7 +2,7 @@
 # coding=utf-8# -*- coding: utf-8 -*-
 
 __author__ = 'axa'
-__version__ = '160904'
+__version__ = '160906'
 
 import os
 import os.path
@@ -13,27 +13,35 @@ from datetime import datetime
 from sys import platform
 import subprocess
 import argparse
-
+import string
 
 Debug = False
 BookShelfs = set()
 
 
 # -----------------------------------------------------
-#
+#  Wait for press <Enter_key> and exit
+#  This solution for Windows prevents closing window
+def exit():
+    print('\nPress <Enter> for close this window')
+    input()
+    quit()
+
+
+# -----------------------------------------------------
+#  Parsing Command Line
 #
 def parseCL():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ereader', type=str, help='Mount point of eReader', default='')
+    parser.add_argument('--onboard', type=str, help='Mount point of eReader', default='')
     parser.add_argument('--sd', type=str, help='Mount point of SD card', default='')
-    parser.add_argument('--rbook', type=str, choices=['on', 'off'], default='off',
-                        help='Enabling/disabling adding book from eReader memory. Disabled by default')
-    parser.add_argument('--sdbook', type=str, choices=['on', 'off'], default='on',
-                        help='Enabling/disabling adding book from SD card memory. Enabled by default')
+    parser.add_argument('--onboard_sw', type=str, choices=['on', 'off'], default='on',
+                        help='Enabling/disabling adding book from eReader onboard memory. Enabled by default')
+    parser.add_argument('--sd_sw', type=str, choices=['on', 'off'], default='on',
+                        help='Enabling/disabling adding book from SD card memory. Enabled if SD card present')
     parser.add_argument('-s', '--showsettings', action='count',
                         help='Display settings and exit. Reader must be connected.')
     parser.add_argument('-v', '--version', action='version', version='Version: ' + __version__)
-
     return parser.parse_args()
 
 
@@ -49,36 +57,49 @@ def detectUSBDrive(args):
         else:
             for dev in df.split('\n'):
                 if os.path.basename(dev) == 'KOBOeReader':
-                    args.ereader = dev
+                    args.onboard = dev
                 elif os.path.isdir(dev + '/koboExtStorage'):
                     args.sd = dev
     elif platform == 'win32':
-        # для windows точки монтирования нужно указывать вручную в командной строке
+        # Import for windows platform
+        from ctypes import windll
+
+        drives = []
+        bitmask = windll.kernel32.GetLogicalDrives()
+        for letter in string.ascii_uppercase:
+            if bitmask & 1:
+                if os.path.isdir(letter + ':/.kobo'):
+                    args.onboard = letter + ':'
+                elif os.path.isdir(letter + ':/koboExtStorage'):
+                    args.sd = letter + ':'
+                drives.append(letter)
+            bitmask >>= 1
         pass
     elif Debug:
         args.sd = '/home/axa/Media/axa/KoboSD'
-        args.ereader = '/home/axa/Media/axa/KOBOeReader'
+        args.onboard = '/home/axa/Media/axa/KOBOeReader'
     else:
         print('Upssss.... I dont know this host')
-        quit()
+        exit()
 
-    if args.ereader == '' or args.sd == '':
-        print('Check mount Reader and SD card or use command line switches')
-        quit()
+    if args.onboard == '':
+        print('Can\'t find Kobo eReader.\n'
+              'Check mount Reader and SD card or use command line switches')
+        exit()
 
 
 # -----------------------------------------------------
-#
+#  Simply show current setting
 #
 def showSettings(args):
-    print('eReader mount point: ', args.ereader)
+    print('eReader mount point: ', args.onboard)
     print('SD card mount point: ', args.sd)
-    print('Add books from eReader: ', args.rbook)
-    print('Add books from SD card: ', args.sdbook)
+    print('Add books from eReader: ', args.onboard_sw)
+    print('Add books from SD card: ', args.sd_sw)
 
 
 # -----------------------------------------------------
-#
+# Adding Book shelf to BD
 #
 def addBookShelf(book_shelf, cursorSQL):
     if book_shelf not in BookShelfs:
@@ -110,6 +131,7 @@ def addBook(location, book_path, f_name, cursorSQL):
     book_shelf = os.path.basename(book_path)
     addBookShelf(book_shelf, cursorSQL)
     book_full_path = location + book_path + '/' + f_name
+    book_full_path = book_full_path.replace("\\", "/")
     print('\t%s' % book_full_path)
     v_ShelfName = book_shelf
     v_ContentId = book_full_path
@@ -128,34 +150,41 @@ def addBook(location, book_path, f_name, cursorSQL):
 #
 def main(argv):
     args = parseCL()
-    if args.ereader == '' or args.sd == '':
+    if args.onboard == '' or args.sd == '':
         detectUSBDrive(args)
     if args.showsettings:
         showSettings(args)
-        quit()
-    if args.version:
-        print('Version ', __version__)
-        quit()
+        exit()
 
-    db_path = args.ereader + '/.kobo/KoboReader.sqlite'
+    db_path = args.onboard + '/.kobo/KoboReader.sqlite'
     BooksRoot = 'Books'
 
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
-    # Очистить содержимое таблицы "Shelf"
+    # Clear "Shelf" Table
     c.execute("DELETE FROM Shelf")
-    # Очистить содержимое таблицы "ShelfContent"
+    # Clear "ShelfContent" Table
     c.execute("DELETE FROM ShelfContent")
 
-    # добавляем полки и книги из SD карты
-    SDCardPathBooks = args.sd + '/' + BooksRoot
-    for dirName, subdirList, file_list in os.walk(SDCardPathBooks):
-        file_list = [fi for fi in file_list if fi.lower().endswith('.epub')]
+    if args.onboard_sw == 'on':
+        # Add Shelves and books from internal memory
+        books = args.onboard + '/' + BooksRoot
+        for dirName, subdirList, file_list in os.walk(books):
+            file_list = [fi for fi in file_list if fi.lower().endswith('.epub')]
+            location = 'file:///mnt/onboard'
+            book_path = dirName.replace(args.onboard, '')
+            for f_name in file_list:
+                addBook(location, book_path, f_name, c)
 
-        location = 'file:///mnt/sd'
-        book_path = dirName.replace(args.sd, '')
-        for f_name in file_list:
-            addBook(location, book_path, f_name, c)
+    if args.sd_sw == 'on':
+        # Add Shelves and books from SD card
+        SDCardPathBooks = args.sd + '/' + BooksRoot
+        for dirName, subdirList, file_list in os.walk(SDCardPathBooks):
+            file_list = [fi for fi in file_list if fi.lower().endswith('.epub')]
+            location = 'file:///mnt/sd'
+            book_path = dirName.replace(args.sd, '')
+            for f_name in file_list:
+                addBook(location, book_path, f_name, c)
 
     conn.commit()
     # conn.execute("VACUUM")
@@ -164,3 +193,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv)
+    exit()
