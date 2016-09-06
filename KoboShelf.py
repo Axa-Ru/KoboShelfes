@@ -4,6 +4,12 @@
 __author__ = 'axa'
 __version__ = '0.9 build 2016-09-06'
 
+# git: https://github.com/Axa-Ru/KoboShelfes/blob/master/KoboShelf.py
+# description:
+#       http://axa-ru.blogspot.ru/2016/09/kobo.html
+#       http://www.the-ebook.org/forum/viewtopic.php?t=31294
+
+
 import os
 import os.path
 import sqlite3
