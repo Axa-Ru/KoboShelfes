@@ -1,0 +1,122 @@
+[i]Version 0.9 build 2016-09-06[/i]
+
+Наверное самое глупая фишка в ридерах от Kobo - это так называемые книжные полки.
+Единственное преимущество перед хранением книг в директориях - возможность поместить книгу сразу в две и более полок. Довольно сомнительная возможность.
+
+Я обычно на карточку пяток книг напочитать, а на будущее храню в скрытой папке [i].book[/i].
+
+Для перемещения из скрытой папки нужен компьютер. В принципе не напрягает, но вчера не спалось и я написал вот этот скрип на python, который раскладывает книги по полкам.
+
+
+[b]Как это работает.[/b]
+
+[spoiler]В основной памяти и на карточке я создал корневую директорию /Books.
+Внутри - отдельные директории для серий, в которые я копирую книги.
+
+[url=http://itmages.ru/image/view/4808152/b178b18e][img]http://storage6.static.itmages.ru/i/16/0830/s_1472566358_5863197_b178b18e37.jpg[/img][/url]
+
+Потом запускаю скрипт.
+
+Скрипт сначала очищает две таблицы: [i]Shelf[/i] и [i]ShelfContent[/i].
+Потом сканирует папку Books  и записывает названия вложенных папок в [i]Shelf[/i] и собственно книги в [i]ShelfContent[/i].
+
+Внутренние алгоритмы ридера работают по другому. Они ничего из базы не удаляют, а ставят пометку, что книга удалена. Вероятно это делается для сбора статистики и передается на сайт производителя, чтоб лучше нам впаривать книжки.
+Но это мои догадки.
+Мне это было делать лениво и я по простому очищаю указанные таблицы.
+Извините, если что не так.
+
+Вложенные директории не проверял. К тому же, считаю смысла в них нет. Название полки не поместится на экран ридера.
+Собственно и все.[/spoiler]
+
+[b]Установка Python[/b]
+[spoiler="Если у Вас Ubuntu"][i]...то Python 3.5 уже скорее всего стоит.
+Если нет, то выполните команду:[/i]
+[code]sudo add-apt-repository ppa:fkrull/deadsnakes
+sudo apt-get update
+sudo apt-get install python3.5
+[/code][/spoiler]
+
+[spoiler="Если у Вас Windows"][i]...то установите Python 3.5.2 - 2016-06-27 отсюда
+https://www.python.org/downloads/windows/
+
+[/spoiler]
+
+[b]Исходный код можно посмотреть в Git репозитории:[/b]
+    https://github.com/Axa-Ru/KoboShelfes/blob/master/KoboShelf.py
+
+
+[b]Как использовать.[/b]
+
+1. Сохраните скрипт в файл KoboShelf.py и дайте ему права на исполнение:
+[code]chmod +x KoboShelf.py[/code]
+2. Поправьте пути в начале скрипта так, что бы они соответствовали монтированию ридера в вашей системе.
+[code]SDCardPathMount = '/home/axa/Media/axa/KoboSD'
+DBPath = '/home/axa/Media/axa/KOBOeReader/.kobo/KoboReader.sqlite'[/code]
+3. В каталоге .kobo в разделе KOBOeReader [u]сделайте резервную копию базы данных[/u].
+[code]$ cp KoboReader.sqlite KoboReader.sqlite.origin[/code]
+4. Создайте папку /Books на карточке, в ней папки с сериями, в них скопируйте ваши книги.
+5. Запустите из терминала вышеуказанный скрипт.
+[code]./KoboShelf.py[/code]
+[spoiler="На экране будет нечто похожее на"]
+[code]BookShelf: Айзек Азимов. Академия
+	file:///mnt/sd/Books/Айзек Азимов. Академия/Азимов 10 Триумф Академии.ePub
+	file:///mnt/sd/Books/Айзек Азимов. Академия/Азимов 03 Академия.ePub
+	file:///mnt/sd/Books/Айзек Азимов. Академия/Азимов 02 На пути к Академии.ePub
+	file:///mnt/sd/Books/Айзек Азимов. Академия/Азимов 01 Прелюдия к Академии.ePub
+	file:///mnt/sd/Books/Айзек Азимов. Академия/Азимов - Конец вечности.epub
+	file:///mnt/sd/Books/Айзек Азимов. Академия/Азимов 09 Академия и хаос.ePub
+
+. . . . . . . .
+. . . . . . . .
+
+BookShelf: Эндер Виггинс
+	file:///mnt/sd/Books/Эндер Виггинс/Кард 8 Театр Теней.ePub
+	file:///mnt/sd/Books/Эндер Виггинс/Кард 7 Тень Гегемона.ePub
+	file:///mnt/sd/Books/Эндер Виггинс/Кард 1 Игра Эндера.ePub
+	file:///mnt/sd/Books/Эндер Виггинс/Кард 5 Дети Разума.ePub
+	file:///mnt/sd/Books/Эндер Виггинс/Кард 2 Говорящий от имени мертвых (Голос тех, кого нет).ePub
+	file:///mnt/sd/Books/Эндер Виггинс/Кард 4 Ксеноцид.ePub
+	file:///mnt/sd/Books/Эндер Виггинс/Кард 3 Советник по инвестициям.ePub
+	file:///mnt/sd/Books/Эндер Виггинс/Кард 6 Тень Эндера.ePub
+
+Process finished with exit code 0[/code][/spoiler] 6. Безопасно извлеките ридер.
+
+[b]Командная Строка[/b]
+В Linux и в Windows скрипт автоматически определяет точки монтирования Kobo и SD карты. Поэтому для создания полок никакие аргументы в команде запуска не нужны.
+
+[spoiler="Аргументы командной строки"][code]./KoboShelf.py -h
+usage: KoboShelf.py [-h] [--onboard ONBOARD] [--sd SD] [--onboard_sw {on,off}]
+                    [--sd_sw {on,off}] [-s] [-v]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --onboard ONBOARD     eReaders mount point
+  --sd SD               SD cards mount point
+  --onboard_sw {on,off}
+                        Enabling/disabling adding book from eReader onboard
+                        memory. Enabled by default
+  --sd_sw {on,off}      Enabling/disabling adding book from SD card memory.
+                        Enabled if SD card present
+  -s, --showsettings    Display settings and exit. Reader must be connected.
+  -v, --version         show program's version number and exit
+[/code][/spoiler]
+
+[b]Какие могут быть траблы.[/b]
+
+Скрипт в стадии экспериментальной, поэтому возможно все.
+Если нарушить указанный порядок, то возможно запортить базу данных [i]KoboReader.sqlite[/i]
+Тогда ее восстанавливаем из сохраненной копии.
+Как всегда, все вы выполняете на свой страх и риск. Я ни за что не отвечаю.
+
+В скрипте меняйте, что хотите, хоть автора, хоть код. :P
+
+Всем удачи.
+
+
+[color=green][size=9]Posted after 6 hours 43 minutes 4 seconds:[/size][/color]
+
+Закоментировал VACUUM в конце скрипта. С ним почему-то высока вероятность того, что база будет испорчена.
+Без VACUUM после раскладывания по полкам не потребовалось делать ресет зубочисткой.
+
+Текущую версию скрипта можно забрать с [i]github[/i]:
+[code]git clone https://github.com/Axa-Ru/KoboShelfes.git[/code]
