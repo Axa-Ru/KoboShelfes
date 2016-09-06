@@ -28,6 +28,7 @@
 Собственно и все.[/spoiler]
 
 [b]Установка Python[/b]
+Для работы скрипта необходимо, что бы на вашем компьютере был устfновлен Pyton 3.
 [spoiler="Если у Вас Ubuntu"][i]...то Python 3.5 уже скорее всего стоит.
 Если нет, то выполните команду:[/i]
 [code]sudo add-apt-repository ppa:fkrull/deadsnakes
@@ -47,7 +48,7 @@ https://www.python.org/downloads/windows/
 
 [b]Как использовать.[/b]
 
-1. Сохраните скрипт в файл KoboShelf.py и дайте ему права на исполнение:
+1. Сохраните [url=https://raw.githubusercontent.com/Axa-Ru/KoboShelfes/master/KoboShelf.py]скрипт[/url] в файл KoboShelf.py и дайте ему права на исполнение:
 [code]chmod +x KoboShelf.py[/code]
 2. Поправьте пути в начале скрипта так, что бы они соответствовали монтированию ридера в вашей системе.
 [code]SDCardPathMount = '/home/axa/Media/axa/KoboSD'
@@ -116,6 +117,3 @@ optional arguments:
 
 Закоментировал VACUUM в конце скрипта. С ним почему-то высока вероятность того, что база будет испорчена.
 Без VACUUM после раскладывания по полкам не потребовалось делать ресет зубочисткой.
-
-Текущую версию скрипта можно забрать с [i]github[/i]:
-[code]git clone https://github.com/Axa-Ru/KoboShelfes.git[/code]
