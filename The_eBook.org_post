@@ -38,7 +38,7 @@ sudo apt-get install python3.5
 
 [spoiler="Если у Вас Windows"][i]...то установите Python 3.5.2 - 2016-06-27 отсюда
 https://www.python.org/downloads/windows/
-
+[/i]
 [/spoiler]
 
 [b]Исходный код можно посмотреть в Git репозитории:[/b]
@@ -48,15 +48,12 @@ https://www.python.org/downloads/windows/
 
 [b]Как использовать.[/b]
 
-1. Сохраните [url=https://raw.githubusercontent.com/Axa-Ru/KoboShelfes/master/KoboShelf.py]скрипт[/url] в файл KoboShelf.py и дайте ему права на исполнение:
+1. Сохраните [url=https://raw.githubusercontent.com/Axa-Ru/KoboShelfes/master/KoboShelf.py]скрипт[/url] в файл [i]KoboShelf.py[/i] и дайте ему права на исполнение:
 [code]chmod +x KoboShelf.py[/code]
-2. Поправьте пути в начале скрипта так, что бы они соответствовали монтированию ридера в вашей системе.
-[code]SDCardPathMount = '/home/axa/Media/axa/KoboSD'
-DBPath = '/home/axa/Media/axa/KOBOeReader/.kobo/KoboReader.sqlite'[/code]
-3. В каталоге .kobo в разделе KOBOeReader [u]сделайте резервную копию базы данных[/u].
+2. В каталоге [i].kobo[/i] в основной памяти KOBOeReader [u]сделайте резервную копию базы данных[/u].
 [code]$ cp KoboReader.sqlite KoboReader.sqlite.origin[/code]
-4. Создайте папку /Books на карточке, в ней папки с сериями, в них скопируйте ваши книги.
-5. Запустите из терминала вышеуказанный скрипт.
+3. Создайте папку [i]/Books[/i] в основной памяти Kobo и на SD карточке, в ней папки с сериями, в них скопируйте ваши книги.
+4. Запустите из терминала вышеуказанный скрипт.
 [code]./KoboShelf.py[/code]
 [spoiler="На экране будет нечто похожее на"]
 [code]BookShelf: Айзек Азимов. Академия
@@ -80,7 +77,7 @@ BookShelf: Эндер Виггинс
 	file:///mnt/sd/Books/Эндер Виггинс/Кард 3 Советник по инвестициям.ePub
 	file:///mnt/sd/Books/Эндер Виггинс/Кард 6 Тень Эндера.ePub
 
-Process finished with exit code 0[/code][/spoiler] 6. Безопасно извлеките ридер.
+Process finished with exit code 0[/code][/spoiler] 5. Безопасно извлеките ридер.
 
 [b]Командная Строка[/b]
 В Linux и в Windows скрипт автоматически определяет точки монтирования Kobo и SD карты. Поэтому для создания полок никакие аргументы в команде запуска не нужны.
@@ -105,7 +102,7 @@ optional arguments:
 [b]Какие могут быть траблы.[/b]
 
 Скрипт в стадии экспериментальной, поэтому возможно все.
-Если по какой то причине испортилась база данных KoboReader.sqlite, то восстанавливаем ее из сохраненной копии.
+Если по какой то причине испортилась база данных [i]KoboReader.sqlite[/i], то восстанавливаем ее из сохраненной копии.
 Как всегда, все вы выполняете на свой страх и риск. Я ни за что не отвечаю.
 
 В скрипте меняйте, что хотите, хоть автора, хоть код. :P
