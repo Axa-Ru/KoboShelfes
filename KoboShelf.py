@@ -2,7 +2,7 @@
 # coding=utf-8# -*- coding: utf-8 -*-
 
 __author__ = 'axa'
-__version__ = '160906'
+__version__ = '0.9 build 2016-09-06'
 
 import os
 import os.path
@@ -23,7 +23,7 @@ BookShelfs = set()
 #  Wait for press <Enter_key> and exit
 #  This solution for Windows prevents closing window
 def exit():
-    print('\nPress <Enter> for close this window')
+    print('\nPress <Enter> for close Application')
     input()
     quit()
 
@@ -63,8 +63,6 @@ def detectUSBDrive(args):
     elif platform == 'win32':
         # Import for windows platform
         from ctypes import windll
-
-        drives = []
         bitmask = windll.kernel32.GetLogicalDrives()
         for letter in string.ascii_uppercase:
             if bitmask & 1:
@@ -72,7 +70,6 @@ def detectUSBDrive(args):
                     args.onboard = letter + ':'
                 elif os.path.isdir(letter + ':/koboExtStorage'):
                     args.sd = letter + ':'
-                drives.append(letter)
             bitmask >>= 1
         pass
     elif Debug:
@@ -84,7 +81,7 @@ def detectUSBDrive(args):
 
     if args.onboard == '':
         print('Can\'t find Kobo eReader.\n'
-              'Check mount Reader and SD card or use command line switches')
+              'Check mount Reader or use command line switches')
         exit()
 
 
