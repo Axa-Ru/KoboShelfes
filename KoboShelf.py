@@ -28,10 +28,10 @@ BookShelfs = set()
 # -----------------------------------------------------
 #  Wait for press <Enter_key> and exit
 #  This solution for Windows prevents closing window
-def exit():
+def closeApplication():
     print('\nPress <Enter> for close Application')
     input()
-    quit()
+    exit()
 
 
 # -----------------------------------------------------
@@ -83,12 +83,12 @@ def detectUSBDrive(args):
         args.onboard = '/home/axa/Media/axa/KOBOeReader'
     else:
         print('Upssss.... I dont know this host')
-        exit()
+        closeApplication()
 
     if args.onboard == '':
         print('Can\'t find Kobo eReader.\n'
               'Check mount Reader or use command line switches')
-        exit()
+        closeApplication()
 
 
 # -----------------------------------------------------
@@ -157,7 +157,7 @@ def main(argv):
         detectUSBDrive(args)
     if args.showsettings:
         showSettings(args)
-        exit()
+        closeApplication()
 
     db_path = args.onboard + '/.kobo/KoboReader.sqlite'
     BooksRoot = 'Books'
@@ -196,4 +196,4 @@ def main(argv):
 
 if __name__ == "__main__":
     main(sys.argv)
-    exit()
+    closeApplication()
