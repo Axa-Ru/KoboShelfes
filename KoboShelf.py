@@ -2,7 +2,7 @@
 # coding=utf-8# -*- coding: utf-8 -*-
 
 __author__ = 'axa'
-__version__ = '0.9 build 2016-09-06'
+__version__ = '0.91 build 2016-09-10'
 
 # git: https://github.com/Axa-Ru/KoboShelfes/blob/master/KoboShelf.py
 # description:
@@ -29,8 +29,7 @@ BookShelfs = set()
 #  Wait for press <Enter_key> and exit
 #  This solution for Windows prevents closing window
 def closeApplication():
-    print('\nPress <Enter> for close Application')
-    input()
+    input('\nPress <Enter> for close Application')
     exit()
 
 
