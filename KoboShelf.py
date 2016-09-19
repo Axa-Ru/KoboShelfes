@@ -2,7 +2,7 @@
 # coding=utf-8# -*- coding: utf-8 -*-
 
 __author__ = 'axa'
-__version__ = '0.91 build 2016-09-10'
+__version__ = '0.92 build 2016-09-19'
 
 # git: https://github.com/Axa-Ru/KoboShelfes/blob/master/KoboShelf.py
 # description:
@@ -134,7 +134,11 @@ def addBook(location, book_path, f_name, cursorSQL):
     addBookShelf(book_shelf, cursorSQL)
     book_full_path = location + book_path + '/' + f_name
     book_full_path = book_full_path.replace("\\", "/")
-    print('\t%s' % book_full_path)
+    str = '\t%s' % book_full_path
+    try:
+        print(str)
+    except UnicodeEncodeError:
+        print(str.encode('utf-8'))
     v_ShelfName = book_shelf
     v_ContentId = book_full_path
     v_DateModified = datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%f%z')[:-3]
